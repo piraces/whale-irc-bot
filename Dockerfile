@@ -14,7 +14,9 @@ RUN deno cache deps.ts
 ADD . .
 
 # Chown all source files
+USER root
 RUN chown -R deno:deno .
+USER deno
 
 # Compile the main app so that it doesn't need to be compiled each startup/entry.
 RUN deno cache main.ts
