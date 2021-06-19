@@ -26,7 +26,6 @@ client.on("join", async (_) => {
 
 client.on("error", (error) => {
   logger.error(`Error: ${JSON.stringify(error)}`);
-  logger.flush();
 });
 
 client.on("raw", (msg) => {
