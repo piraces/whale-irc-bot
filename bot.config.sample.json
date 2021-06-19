@@ -1,0 +1,11 @@
+{
+    "ircServer": "irc.libera.chat",
+    "ircPort": 6667,
+    "botNick": "whaleCryptoBot",
+    "channel": "##crypto-whale-alerts",
+    "enableNickServ": false,
+    "nickServPassword": "nickservpass",
+    "whaleAlertApiKey": "apiKey",
+    "minValue": "5000000",
+    "pollInterval": 60000
+}
