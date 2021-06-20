@@ -6,6 +6,7 @@ IRC Bot that sends alerts to the channel #crypto-whale-alerts in irc.libera.chat
 - 💬 Most IRC servers support.
 - 👥 NickServ identification.
 - 👷‍♂️ Completly configurable.
+- 🔄 Auto reconnect.
 - 🐳 Ready to deploy to Docker.
 
 

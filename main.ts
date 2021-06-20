@@ -4,6 +4,7 @@ import getLatestTransactions from "./whaleAlertClient.ts";
 import { WhaleAlert } from "./whaleAlert.ts";
 import { getLogger } from "./logger.ts";
 
+let connected = false;
 const configuration: BotConfiguration = await loadConfiguration();
 const logger: any = await getLogger();
 const formatter = new Intl.NumberFormat("en-US");
@@ -11,6 +12,12 @@ const client = new Client({
   nick: configuration.botNick,
   channels: [configuration.channel],
 });
+
+async function connect() {
+  if (!connected){
+    await client.connect(configuration.ircServer, configuration.ircPort);
+  }
+}
 
 client.on("join", async (_) => {
   if (configuration.enableNickServ) {
@@ -22,6 +29,17 @@ client.on("join", async (_) => {
       `Sent IDENTIFY ${configuration.botNick} <REDACTED>`,
     );
   }
+});
+
+client.on("connected", (msg) => {
+  logger.info(`$Connected! Info: ${msg}`);
+  connected = true;
+});
+
+client.on("disconnected", async (msg) => {
+  logger.error(`$Disconnected! Info: ${msg}`);
+  connected = false;
+  await connect();
 });
 
 client.on("error", (error) => {
@@ -37,7 +55,7 @@ client.on("privmsg", (msg) => {
   logger.debug(`${origin.nick} on ${target} says ${text}`);
 });
 
-await client.connect(configuration.ircServer, configuration.ircPort);
+await connect();
 
 let start = Math.floor(Date.now() / 1000);
 const interval = configuration.pollInterval / 1000;
