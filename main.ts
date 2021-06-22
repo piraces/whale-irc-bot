@@ -14,7 +14,7 @@ const client = new Client({
 });
 
 async function connect() {
-  if (!connected){
+  if (!connected) {
     await client.connect(configuration.ircServer, configuration.ircPort);
   }
 }
@@ -58,6 +58,7 @@ client.on("privmsg", (msg) => {
 await connect();
 
 let start = Math.floor(Date.now() / 1000);
+let lastMessageDate = Date.now();
 const interval = configuration.pollInterval / 1000;
 setInterval(async () => {
   const alerts: WhaleAlert | undefined = await getLatestTransactions(
@@ -79,13 +80,17 @@ setInterval(async () => {
     alerts.result === "success" && alerts.transactions &&
     alerts.transactions.length
   ) {
-    alerts.transactions.forEach((transaction) => {
+    alerts.transactions.forEach(async (transaction) => {
       const source = transaction.from.owner_type.toLowerCase() === "unknown"
         ? "Unknown wallet"
         : (transaction.from.owner ?? transaction.from.owner_type);
       const target = transaction.to.owner_type.toLowerCase() === "unknown"
         ? "Unknown wallet"
         : (transaction.to.owner ?? transaction.to.owner_type);
+      if ((Date.now() - lastMessageDate) <= configuration.rateLimit) {
+        await new Promise((r) => setTimeout(r, configuration.rateLimit));
+      }
+      lastMessageDate = Date.now();
       client.privmsg(
         configuration.channel,
         `${

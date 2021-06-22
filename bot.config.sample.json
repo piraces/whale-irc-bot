@@ -7,5 +7,6 @@
     "nickServPassword": "nickservpass",
     "whaleAlertApiKey": "apiKey",
     "minValue": "5000000",
-    "pollInterval": 60000
+    "pollInterval": 60000,
+    "rateLimit": 2500
 }

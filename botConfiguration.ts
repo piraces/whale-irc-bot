@@ -8,6 +8,7 @@ export default interface BotConfiguration {
   whaleAlertApiKey: string;
   minValue: number;
   pollInterval: number;
+  rateLimit: number;
 }
 
 export async function loadConfiguration(

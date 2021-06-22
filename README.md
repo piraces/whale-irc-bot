@@ -51,6 +51,7 @@ Then we can proceed to configure it. Take a look to the table below to see all t
 | whaleAlertApiKey | string  | apiKey                | The API Key obtained from Whale-alert.io                                                                                         |
 | minValue         | number  | 5000000               | Minimum value in USD to consider as an alert. All transactions equal or greater than this value will be reported to the channel. |
 | pollInterval     | number  | 60000                 | Number of milliseconds to wait between API calls (default value is the recommended for free accounts)                            |
+| rateLimit     | number  | 2500                 | Number of milliseconds to wait between sent messages (default value is the recommended for rate-limit)                            |
 
 
 # Running the bot
