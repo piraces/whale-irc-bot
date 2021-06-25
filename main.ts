@@ -1,7 +1,7 @@
 import BotConfiguration, { loadConfiguration } from "./botConfiguration.ts";
 import { Client } from "./deps.ts";
 import getLatestTransactions from "./whaleAlertClient.ts";
-import { WhaleAlert } from "./whaleAlert.ts";
+import { TransactionsEntity, WhaleAlert } from "./whaleAlert.ts";
 import { getLogger } from "./logger.ts";
 
 let connected = false;
@@ -58,8 +58,9 @@ client.on("privmsg", (msg) => {
 await connect();
 
 let start = Math.floor(Date.now() / 1000);
-let lastMessageDate = Date.now();
 const interval = configuration.pollInterval / 1000;
+const messageQueue: TransactionsEntity[] = [];
+
 setInterval(async () => {
   const alerts: WhaleAlert | undefined = await getLatestTransactions(
     configuration.whaleAlertApiKey,
@@ -80,27 +81,37 @@ setInterval(async () => {
     alerts.result === "success" && alerts.transactions &&
     alerts.transactions.length
   ) {
-    alerts.transactions.forEach(async (transaction) => {
-      const source = transaction.from.owner_type.toLowerCase() === "unknown"
-        ? "Unknown wallet"
-        : (transaction.from.owner ?? transaction.from.owner_type);
-      const target = transaction.to.owner_type.toLowerCase() === "unknown"
-        ? "Unknown wallet"
-        : (transaction.to.owner ?? transaction.to.owner_type);
-      if ((Date.now() - lastMessageDate) <= configuration.rateLimit) {
-        await new Promise((r) => setTimeout(r, configuration.rateLimit));
-      }
-      lastMessageDate = Date.now();
-      client.privmsg(
-        configuration.channel,
-        `${
-          formatter.format(transaction.amount)
-        } \u0002#${transaction.symbol.toUpperCase()} (${
-          formatter.format(transaction.amount_usd)
-        } USD)\u000F transferred from ${source} to ${target}`,
-      );
+    alerts.transactions.forEach((transaction) => {
+      messageQueue.push(transaction);
     });
   }
 
   start += interval;
 }, configuration.pollInterval);
+
+setInterval(() => {
+  if (!messageQueue || messageQueue.length <= 0) {
+    return;
+  }
+
+  const transaction = messageQueue.shift();
+  if (!transaction) {
+    return;
+  }
+
+  const source = transaction.from.owner_type.toLowerCase() === "unknown"
+    ? "Unknown wallet"
+    : (transaction.from.owner ?? transaction.from.owner_type);
+  const target = transaction.to.owner_type.toLowerCase() === "unknown"
+    ? "Unknown wallet"
+    : (transaction.to.owner ?? transaction.to.owner_type);
+
+  client.privmsg(
+    configuration.channel,
+    `${
+      formatter.format(transaction.amount)
+    } \u0002#${transaction.symbol.toUpperCase()} (${
+      formatter.format(transaction.amount_usd)
+    } USD)\u000F transferred from ${source} to ${target}`,
+  );
+}, configuration.rateLimit);
